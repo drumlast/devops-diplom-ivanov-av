@@ -1,0 +1,5 @@
+
+cloud_id  = ""
+folder_id = ""
+bucket_name = "tf-state-bucket"
+key_file = "sa-key.json"

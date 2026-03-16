@@ -1,0 +1,4 @@
+
+bucket = "tf-state-bucket"
+key    = "terraform.tfstate"
+region = "ru-central1"

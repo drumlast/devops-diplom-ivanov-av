@@ -1,0 +1,58 @@
+name: Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yml'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Prepare service account key
+        run: |
+          echo '${{ secrets.YC_SA_JSON_KEY }}' > ../sa-key.json
+
+      - name: Prepare backend config
+        run: |
+          cat > backend.hcl <<EOF
+          bucket                      = "${{ secrets.TF_BACKEND_BUCKET }}"
+          region                      = "ru-central1"
+          key                         = "diplom/terraform.tfstate"
+          endpoint                    = "storage.yandexcloud.net"
+          access_key                  = "${{ secrets.TF_BACKEND_ACCESS_KEY }}"
+          secret_key                  = "${{ secrets.TF_BACKEND_SECRET_KEY }}"
+          skip_region_validation      = true
+          skip_credentials_validation = true
+          skip_requesting_account_id  = true
+          EOF
+
+      - name: Terraform Init
+        run: terraform init -backend-config=backend.hcl
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
