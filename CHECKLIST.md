@@ -30,6 +30,12 @@ terraform apply
 
 ## 3. Получить kubeconfig
 
+Проверка существования кластера и его имени
+
+```
+yc managed-kubernetes cluster list
+```
+
 ```
 yc managed-kubernetes cluster get-credentials <cluster_name> --external
 ```
@@ -60,21 +66,40 @@ kubectl -n monitoring get secret kube-prometheus-stack-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d ; echo
   ```
 
-## 5. Собрать docker image
+## 5. Сборка Docker image
 
 ```
-docker build -t cr.yandex/<registry_id>/nginx-test:latest ../app
-yc container registry configure-docker
-docker push cr.yandex/<registry_id>/nginx-test:latest
+git add .
+git commit -m "test ci"
+git push origin main
 ```
 
-## 6. Деплой приложения
+Результат:
+
+собирается Docker image
+
+image отправляется в Yandex Container Registry с тегом latest
+
+Проверка:
+
+открыть GitHub → Actions
+
+убедиться, что workflow ci завершился успешно
+
+## 6. Деплой приложения в Kubernetes
 
 ```
-kubectl apply -f ../k8s/namespaces/app.yaml
-kubectl apply -f ../k8s/app/deployment.yaml
-kubectl apply -f ../k8s/app/service.yaml
+git tag v1.0.0
+git push origin v1.0.0
 ```
+
+Результат:
+
+собирается Docker image с тегом v1.0.0
+
+image отправляется в Container Registry
+
+выполняется деплой в Kubernetes
 
 ## 7. Проверка
 
