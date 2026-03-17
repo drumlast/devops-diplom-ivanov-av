@@ -32,10 +32,12 @@ jobs:
       - name: Resolve registry and cluster ids
         run: |
           export PATH="$HOME/yandex-cloud/bin:$PATH"
-          REGISTRY_ID="$(yc container registry get --name diplom-registry --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '.id')"
-          CLUSTER_ID="$(yc managed-kubernetes cluster get --name diplom-k8s --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '.id')"
+          REGISTRY_ID="$(yc container registry list --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '[.[] | select(.name=="diplom-registry")] | sort_by(.created_at) | last | .id')"
+          CLUSTER_ID="$(yc managed-kubernetes cluster list --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '[.[] | select(.name=="diplom-k8s")] | sort_by(.created_at) | last | .id')"
           echo "REGISTRY_ID=$REGISTRY_ID" >> $GITHUB_ENV
           echo "CLUSTER_ID=$CLUSTER_ID" >> $GITHUB_ENV
+          echo "Resolved REGISTRY_ID=$REGISTRY_ID"
+          echo "Resolved CLUSTER_ID=$CLUSTER_ID"
 
       - name: Docker login
         run: cat key.json | docker login --username json_key --password-stdin cr.yandex
