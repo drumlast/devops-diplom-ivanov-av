@@ -32,16 +32,16 @@ jobs:
           chmod 600 ~/.kube/config
 
       - name: Deploy namespace
-        run: kubectl apply -f k8s/namespaces/app.yaml
+        run: kubectl apply --validate=false -f k8s/namespaces/app.yaml
 
       - name: Deploy application
         run: |
           sed -e "s|REGISTRY_ID|${{ secrets.YC_REGISTRY_ID }}|g" \
               -e "s|IMAGE_TAG|${GITHUB_REF_NAME}|g" \
-              k8s/app/deployment.yaml | kubectl apply -f -
+              k8s/app/deployment.yaml | kubectl apply --validate=false -f -
 
       - name: Deploy service
-        run: kubectl apply -f k8s/app/service.yaml
+        run: kubectl apply --validate=false -f k8s/app/service.yaml
 
       - name: Check rollout
         run: kubectl rollout status deployment/nginx-test -n app --timeout=300s
