@@ -1,11 +1,29 @@
+name: ci
 
-name: build
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yml"
 
 jobs:
-  build:
+  build-and-push-latest:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write SA key
+        run: echo '${{ secrets.YC_SA_JSON_KEY }}' > key.json
+
+      - name: Docker login
+        run: cat key.json | docker login --username json_key --password-stdin cr.yandex
+
+      - name: Build image
+        run: docker build -t cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:latest ./app
+
+      - name: Push image
+        run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:latest

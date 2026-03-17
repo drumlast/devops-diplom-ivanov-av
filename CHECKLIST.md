@@ -50,12 +50,21 @@ helm repo update
 kubectl apply -f ../k8s/namespaces/monitoring.yaml
 
 helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack   --namespace monitoring   -f ../k8s/monitoring/values.yaml
+
+kubectl get pods -n monitoring
+kubectl get svc -n monitoring
 ```
+Получить пароль Grafana:
+```
+kubectl -n monitoring get secret kube-prometheus-stack-grafana \
+  -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+  ```
 
 ## 5. Собрать docker image
 
 ```
 docker build -t cr.yandex/<registry_id>/nginx-test:latest ../app
+yc container registry configure-docker
 docker push cr.yandex/<registry_id>/nginx-test:latest
 ```
 
