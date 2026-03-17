@@ -35,7 +35,7 @@ jobs:
           export PATH="$HOME/yandex-cloud/bin:$PATH"
           yc config profile create cicd || true
           yc config set service-account-key key.json
-          yc managed-kubernetes cluster get-credentials diplom-k8s --external --force
+          yc managed-kubernetes cluster get-credentials --name "${{ secrets.YC_K8S_CLUSTER_NAME }}" --external --force
 
       - name: Deploy namespace
         run: kubectl apply --validate=false -f k8s/namespaces/app.yaml
