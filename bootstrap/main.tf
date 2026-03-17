@@ -1,4 +1,3 @@
-
 terraform {
   required_providers {
     yandex = {
@@ -9,13 +8,13 @@ terraform {
 }
 
 provider "yandex" {
-  service_account_key_file = var.key_file
+  token     = var.token
   cloud_id  = var.cloud_id
   folder_id = var.folder_id
 }
 
 resource "yandex_iam_service_account" "terraform" {
-  name = "terraform-sa"
+  name = var.terraform_service_account_name
 }
 
 resource "yandex_resourcemanager_folder_iam_member" "editor" {
@@ -24,10 +23,33 @@ resource "yandex_resourcemanager_folder_iam_member" "editor" {
   member    = "serviceAccount:${yandex_iam_service_account.terraform.id}"
 }
 
-resource "yandex_iam_service_account_static_access_key" "sa_key" {
+resource "yandex_iam_service_account_key" "terraform_key" {
   service_account_id = yandex_iam_service_account.terraform.id
+  description        = "key for terraform"
+}
+
+resource "yandex_iam_service_account_static_access_key" "sa_static_key" {
+  service_account_id = yandex_iam_service_account.terraform.id
+  description        = "static access key for terraform backend"
 }
 
 resource "yandex_storage_bucket" "tf_state" {
-  bucket = var.bucket_name
+  bucket     = var.bucket_name
+  access_key = yandex_iam_service_account_static_access_key.sa_static_key.access_key
+  secret_key = yandex_iam_service_account_static_access_key.sa_static_key.secret_key
+}
+
+output "terraform_sa_key_json" {
+  value     = yandex_iam_service_account_key.terraform_key.private_key
+  sensitive = true
+}
+
+output "storage_access_key" {
+  value     = yandex_iam_service_account_static_access_key.sa_static_key.access_key
+  sensitive = true
+}
+
+output "storage_secret_key" {
+  value     = yandex_iam_service_account_static_access_key.sa_static_key.secret_key
+  sensitive = true
 }
