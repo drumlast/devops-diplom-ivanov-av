@@ -62,3 +62,4 @@ terraform destroy
 ### CI/CD
 ![cicd](img/5-1.png)
 ![cicd](img/5-2.png)
+![cicd](img/5-3.png)
