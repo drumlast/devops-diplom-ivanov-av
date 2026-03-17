@@ -29,6 +29,12 @@ resource "yandex_resourcemanager_folder_iam_member" "storage_admin" {
   member    = "serviceAccount:${yandex_iam_service_account.terraform.id}"
 }
 
+resource "yandex_resourcemanager_folder_iam_member" "admin" {
+  folder_id = var.folder_id
+  role      = "admin"
+  member    = "serviceAccount:${yandex_iam_service_account.terraform.id}"
+}
+
 resource "yandex_iam_service_account_key" "terraform_key" {
   service_account_id = yandex_iam_service_account.terraform.id
   description        = "key for terraform"
@@ -46,6 +52,7 @@ resource "yandex_storage_bucket" "tf_state" {
 
   depends_on = [
     yandex_resourcemanager_folder_iam_member.editor,
-    yandex_resourcemanager_folder_iam_member.storage_admin
+    yandex_resourcemanager_folder_iam_member.storage_admin,
+    yandex_resourcemanager_folder_iam_member.admin
   ]
 }
