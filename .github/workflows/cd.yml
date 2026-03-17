@@ -16,7 +16,7 @@ jobs:
       - name: Write SA key
         run: echo '${{ secrets.YC_SA_JSON_KEY }}' > key.json
 
-      - name: Docker login
+      - name: Docker login to Yandex Container Registry
         run: cat key.json | docker login --username json_key --password-stdin cr.yandex
 
       - name: Build image
@@ -25,13 +25,14 @@ jobs:
       - name: Push image
         run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME}
 
-        name: Install yc
+      - name: Install yc
         run: |
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i $HOME/yandex-cloud -n
           echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
 
       - name: Configure kubeconfig
         run: |
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
           yc config profile create cicd || true
           yc config set service-account-key key.json
           yc managed-kubernetes cluster get-credentials diplom-k8s --external --force
