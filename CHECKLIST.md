@@ -6,6 +6,7 @@
 ```
 cd bootstrap
 cp terraform.tfvars.example terraform.tfvars
+export TF_VAR_token="$(yc iam create-token)"
 terraform init
 terraform apply
 ```
@@ -13,7 +14,7 @@ terraform apply
 Сохранить ключ сервисного аккаунта
 
 ```
-terraform output -raw sa_key > ../sa-key.json
+terraform output -raw terraform_sa_key_json > ../sa-key.json
 ```
 
 ## 2. Развёртывание инфраструктуры
