@@ -31,7 +31,7 @@ CHECKLIST.md      порядок запуска
 
 - инфраструктура созданная Terraform
 - Kubernetes кластер
-- docker image тестового приложения
+- docker image тестового приложения Docker image
 - приложение доступно по HTTP
 - Grafana доступна по HTTP
 - CI/CD pipeline для сборки и деплоя
@@ -50,8 +50,15 @@ terraform destroy
 ### Kubernetes
 ![k8s](img/2-1.png)
 
+### Docker image list
+![k8s](img/6.png)
+
 ### Grafana
 ![grafana](img/3.png)
+![grafana](img/3-1.png)
+![grafana](img/3-2.png)
+![grafana](img/3-3.png)
 
 ### CI/CD
-![cicd](img/4.png)
+![cicd](img/5-1.png)
+![cicd](img/5-2.png)
