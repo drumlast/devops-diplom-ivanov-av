@@ -44,10 +44,11 @@ terraform destroy
 ## Скриншоты
 
 ### Инфраструктура
-![infra](img/1.png)
+![infra](img/1-1.png)
+![infra](img/1-2.png)
 
 ### Kubernetes
-![k8s](img/2.png)
+![k8s](img/2-1.png)
 
 ### Grafana
 ![grafana](img/3.png)
