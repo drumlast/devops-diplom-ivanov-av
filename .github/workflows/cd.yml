@@ -25,11 +25,16 @@ jobs:
       - name: Push image
         run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME}
 
-      - name: Set kubeconfig
+        name: Install yc
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i $HOME/yandex-cloud -n
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Configure kubeconfig
+        run: |
+          yc config profile create cicd || true
+          yc config set service-account-key key.json
+          yc managed-kubernetes cluster get-credentials diplom-k8s --external --force
 
       - name: Deploy namespace
         run: kubectl apply --validate=false -f k8s/namespaces/app.yaml
