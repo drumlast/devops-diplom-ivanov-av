@@ -1,5 +1,0 @@
-
-cloud_id = ""
-folder_id = ""
-cluster_name = "diplom-k8s"
-key_file = "../sa-key.json"
