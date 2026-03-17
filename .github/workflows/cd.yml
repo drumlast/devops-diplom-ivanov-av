@@ -16,35 +16,47 @@ jobs:
       - name: Write SA key
         run: echo '${{ secrets.YC_SA_JSON_KEY }}' > key.json
 
-      - name: Docker login to Yandex Container Registry
-        run: cat key.json | docker login --username json_key --password-stdin cr.yandex
-
-      - name: Build image
-        run: docker build -t cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME} ./app
-
-      - name: Push image
-        run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME}
-
       - name: Install yc
         run: |
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i $HOME/yandex-cloud -n
           echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
 
-      - name: Configure kubeconfig
+      - name: Configure yc
         run: |
           export PATH="$HOME/yandex-cloud/bin:$PATH"
           yc config profile create cicd || true
           yc config set service-account-key key.json
           yc config set folder-id "${{ secrets.YC_FOLDER_ID }}"
           yc config set cloud-id "${{ secrets.YC_CLOUD_ID }}"
-          yc managed-kubernetes cluster get-credentials --id "${{ secrets.YC_K8S_CLUSTER_ID }}" --external --force
+
+      - name: Resolve registry and cluster ids
+        run: |
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
+          REGISTRY_ID="$(yc container registry get --name diplom-registry --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '.id')"
+          CLUSTER_ID="$(yc managed-kubernetes cluster get --name diplom-k8s --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '.id')"
+          echo "REGISTRY_ID=$REGISTRY_ID" >> $GITHUB_ENV
+          echo "CLUSTER_ID=$CLUSTER_ID" >> $GITHUB_ENV
+
+      - name: Docker login
+        run: cat key.json | docker login --username json_key --password-stdin cr.yandex
+
+      - name: Build image
+        run: docker build -t cr.yandex/${{ env.REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME} ./app
+
+      - name: Push image
+        run: docker push cr.yandex/${{ env.REGISTRY_ID }}/nginx-test:${GITHUB_REF_NAME}
+
+      - name: Configure kubeconfig
+        run: |
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
+          yc managed-kubernetes cluster get-credentials --id "${{ env.CLUSTER_ID }}" --external --force
 
       - name: Deploy namespace
         run: kubectl apply --validate=false -f k8s/namespaces/app.yaml
 
       - name: Deploy application
         run: |
-          sed -e "s|REGISTRY_ID|${{ secrets.YC_REGISTRY_ID }}|g" \
+          sed -e "s|REGISTRY_ID|${{ env.REGISTRY_ID }}|g" \
               -e "s|IMAGE_TAG|${GITHUB_REF_NAME}|g" \
               k8s/app/deployment.yaml | kubectl apply --validate=false -f -
 

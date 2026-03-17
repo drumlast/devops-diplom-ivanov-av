@@ -19,11 +19,30 @@ jobs:
       - name: Write SA key
         run: echo '${{ secrets.YC_SA_JSON_KEY }}' > key.json
 
+      - name: Install yc
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i $HOME/yandex-cloud -n
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Configure yc
+        run: |
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
+          yc config profile create cicd || true
+          yc config set service-account-key key.json
+          yc config set folder-id "${{ secrets.YC_FOLDER_ID }}"
+          yc config set cloud-id "${{ secrets.YC_CLOUD_ID }}"
+
+      - name: Resolve registry id
+        run: |
+          export PATH="$HOME/yandex-cloud/bin:$PATH"
+          REGISTRY_ID="$(yc container registry get --name diplom-registry --folder-id "${{ secrets.YC_FOLDER_ID }}" --format json | jq -r '.id')"
+          echo "REGISTRY_ID=$REGISTRY_ID" >> $GITHUB_ENV
+
       - name: Docker login
         run: cat key.json | docker login --username json_key --password-stdin cr.yandex
 
       - name: Build image
-        run: docker build -t cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:latest ./app
+        run: docker build -t cr.yandex/${{ env.REGISTRY_ID }}/nginx-test:latest ./app
 
       - name: Push image
-        run: docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/nginx-test:latest
+        run: docker push cr.yandex/${{ env.REGISTRY_ID }}/nginx-test:latest
