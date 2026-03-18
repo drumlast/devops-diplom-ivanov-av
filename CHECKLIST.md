@@ -28,6 +28,17 @@ terraform init -backend-config=backend.hcl
 terraform apply
 ```
 
+Вариант который использован в решении данной дипломной работы - это через Action в GitHub, а именно:
+
+как-то изменить файл .github\workflows\terraform.yml например комментарий поставить или изменить что-то в самом коде, потом:
+
+```
+git add .
+git commit -m "text-of-commit"
+git push main origin
+```
+В таком случае инфраструктура создается через Actions
+
 ## 3. Получить kubeconfig
 
 Проверка существования кластера и его имени
