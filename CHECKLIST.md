@@ -35,7 +35,7 @@ terraform apply
 ```
 git add .
 git commit -m "text-of-commit"
-git push main origin
+git push origin main
 ```
 В таком случае инфраструктура создается через Actions
 
