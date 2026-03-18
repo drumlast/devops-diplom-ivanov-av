@@ -1,4 +1,4 @@
-#test ci
+##start ci
 name: ci
 
 on:
